@@ -6,6 +6,8 @@ import datetime
 import os.path
 import pathlib
 import json
+import qrcode
+import io
 
 
 """
@@ -39,7 +41,8 @@ def get_ip_address():
     return ip_address['ip']
 
 def generate_qr_code(filename: str):
-    """WIP"""
+    """generates qr-code from file to stdout"""
+
     pass
 
 def generate_config(seqno: int, count_of_configs: int) -> None:
@@ -70,7 +73,7 @@ def generate_config(seqno: int, count_of_configs: int) -> None:
                 f.write('PrivateKey = ' + guest_priv_public_keys[0] + '\n\n')
                 f.write('[Peer]\n')
                 f.write('PublicKey = ' + data['public_key'] + '\n')
-                f.write('PreshareKey = ' + guest_preshared_key + '\n')
+                f.write('PresharedKey = ' + guest_preshared_key + '\n')
                 f.write('AllowedIPs = 0.0.0.0/0\n')
                 f.write('Endpoint = ' + data['ip_address'] + ':' + data['portno'] + '\n')
                 f.write('PersistentKeepalive = 25')
