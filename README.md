@@ -19,7 +19,7 @@ qrencode -t ansiutf8 < wg_client_3.conf
 
 # Running Wireguard
 ```Bash
-ln -s $pwd/wghub.con /etc/wireguard/wg0.conf
+ln -s $PWD/wghub.con /etc/wireguard/wg0.conf
 wg-quick up wg0
 ```
 WIP

@@ -12,6 +12,10 @@ import json
 1. Check if files exists in filesystem
 2. If file does not exist create configuration files, get private/publc keys and create n number of configs 
 3. if file exists create additional configuration files in current directory. Default to 1 file
+
+todo list:
+f-strings
+qr-code generation out of the box with stdout
 """
 
 def generate_wireguard_keys():
@@ -72,10 +76,10 @@ def generate_config(seqno: int, count_of_configs: int) -> None:
                 f.write('PrivateKey = ' + guest_priv_public_keys[0] + '\n\n')
                 f.write('[Peer]\n')
                 f.write('PublicKey = ' + data['public_key'] + '\n')
-                f.write('PreshareKey = ' + guest_preshared_key + '\n')
+                f.write('PresharedKey = ' + guest_preshared_key + '\n')
                 f.write('AllowedIPs = 0.0.0.0/0\n')
                 f.write('Endpoint = ' + data['ip_address'] + ':' + data['portno'] + '\n')
-                f.write('PersistentKeepalive = 25')
+                f.write('PersistentKeepalive = 25\n')
             data['seqno'] = counter
             current_dir = str(pathlib.Path(__file__).parent.resolve())
             with open(current_dir + os.sep + "wg-gen.json", 'r+') as file:
