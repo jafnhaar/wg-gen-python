@@ -87,14 +87,15 @@ def generate_config(seqno: int, count_of_configs: int) -> None:
     pass
 
 priv_public_keys = generate_wireguard_keys()
+current_dir = str(pathlib.Path(__file__).parent.resolve())
 
 datenow = str(datetime.datetime.now().isoformat(' ', 'seconds'))
 
 if os.path.isfile('json_data.json'):
+    configs_counter = sys.argv[1]  # IndexError: list index out of range
     with open('json_data.json') as json_file:
         data_dictionary = json.load(json_file)
     generate_config(int(data_dictionary['seqno']), 1)
-
     
     pass
 else:
@@ -108,7 +109,7 @@ else:
         'portno': str(random.randrange(9000, 50000)),
         'ip_address': str(get_ip_address())
     }
-    current_dir = str(pathlib.Path(__file__).parent.resolve())
+ 
     with open(current_dir + os.sep + 'json_data.json', 'w') as file:
             file.write(json.dumps(data_dictionary, indent=4))
 
