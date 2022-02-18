@@ -4,6 +4,8 @@ import random
 import datetime
 import socket
 import os.path
+import pathlib
+import json
 
 
 """
@@ -38,16 +40,19 @@ def get_ip_address():
     s.close()
     return ip_address
 
-def generate_config(seqno: int, count_of_configs: int):
+def generate_qr_code(filename: str):
+    """WIP"""
+    pass
+
+def generate_config(seqno: int, count_of_configs: int) -> None:
     """
     Generate wireguard configs and append at the end of wghub.conf
     """
     try:
-        publickey = str(open('public.key', 'r').read())
-        ip_address = str(open('ip_address.txt', 'r').read())
-        port_number = str(open('portno.txt', 'r').read())
+        with open('json_data.json') as json_file:
+            data = json.load(json_file)
         
-        for i in range (seqno, seqno + count_of_configs):
+        for i in range (seqno + 1, seqno + count_of_configs + 1):
             guest_priv_public_keys = generate_wireguard_keys()
             guest_preshared_key = generate_preshared_key()
             counter = str(i)
@@ -57,63 +62,60 @@ def generate_config(seqno: int, count_of_configs: int):
                 f.write('[Peer]\n')
                 f.write('PublicKey = ' + guest_priv_public_keys[1] + '\n')
                 f.write('PresharedKey = ' + guest_preshared_key +'\n')
-                f.write('AllowedIPs = ' + guest_subnet + '.' + counter + guest_cidr + '\n')
+                f.write('AllowedIPs = ' + data['guest_subnet'] + counter + '\n')
             with open('wg_client_' + counter +'.conf', 'w') as f:
-                f.write('[Interface]')
-                f.write('Address = ' + guest_subnet + '.' + counter + guest_cidr + '\n')
-                f.write('DNS = ' + dns + '\n')
+                f.write('[Interface]\n')
+                f.write('Address = ' + data['guest_subnet'] + counter + data['guest_cidr'] + '\n')
+                f.write('DNS = ' + data['dns'] + '\n')
                 f.write('PrivateKey = ' + guest_priv_public_keys[0] + '\n\n')
                 f.write('[Peer]\n')
-                f.write('PublicKey = ' + publickey + '\n')
+                f.write('PublicKey = ' + data['public_key'] + '\n')
                 f.write('PreshareKey = ' + guest_preshared_key + '\n')
                 f.write('AllowedIPs = 0.0.0.0/0\n')
-                f.write('Endpoint = ' + ip_address + ':' + port_number + '\n')
+                f.write('Endpoint = ' + data['ip_address'] + ':' + data['portno'] + '\n')
                 f.write('PersistentKeepalive = 25')
-            with open('seqno.txt', 'w') as f:
-                f.write(str(counter))
+            data['seqno'] = counter
+            current_dir = str(pathlib.Path(__file__).parent.resolve())
+            with open("json_data.json", 'r+') as file:
+                data_dict = json.load(file)
+                data.update(data)
+                file.seek(0)
+                json.dump(data, file, indent=4)
+
     except:
-        pass
+        raise ValueError
     pass
 
 priv_public_keys = generate_wireguard_keys()
-cidr = '/24'  # default cidr
-guest_cidr = '/32'
-subnet = '10.'  # default private subnet for wg guests
-guest_subnet = (subnet + str(random.randrange(0,254)) + '.' + str(random.randrange(0,254)))
-dns = '1.1.1.1'  # default DNS
+
 datenow = str(datetime.datetime.now().isoformat(' ', 'seconds'))
-port_number = str(random.randrange(9000, 50000))
-ip_address = str(get_ip_address())
 
-if os.path.isfile('wghub.conf'):
-    pass
-    desired_configs = 1  # by default
-    seqno = int(open('seqno.txt', 'r').read())
-    try:
-        desired_configs = sys.argv[1]  # if sysargv is set
-    except IndexError:
-        print('argument not set, defaults to 1 configuration file')
-        print('Example Usage: python wg-gen.py 5 will generate 5 guest configs')
-    generate_config(seqno, desired_configs)
-
+if os.path.isfile('json_data.json'):
+    with open('json_data.json') as json_file:
+        data_dictionary = json.load(json_file)
+    generate_config(int(data_dictionary['seqno']), 1)
 
     
+    pass
 else:
+    data_dictionary = {
+        'private_key': priv_public_keys[0],
+        'public_key': priv_public_keys[1],
+        'cidr': '/24',
+        'guest_cidr': '/32',
+        'guest_subnet': ('10.' + str(random.randrange(0,254)) + '.' + str(random.randrange(0,254)) + '.'),
+        'dns': '1.1.1.1',
+        'portno': str(random.randrange(9000, 50000)),
+        'ip_address': str(get_ip_address())
+    }
+    current_dir = str(pathlib.Path(__file__).parent.resolve())
+    with open(current_dir + os.sep + 'json_data.json', 'w') as file:
+            file.write(json.dumps(data_dictionary, indent=4))
 
-    with open('priv.key', 'w') as file:
-        file.write(priv_public_keys[0])
-    with open('public.key', 'w') as file:
-        file.write(priv_public_keys[1])
-    with open('ip_address.txt', 'w') as file:
-        file.write(get_ip_address())
-    with open('portno.txt', 'w') as file:
-        file.write(str(port_number))
-
-    # generate first part of wghub.conf file 
     with open('wghub.conf', 'a') as f:
         f.write('# hub generated at '  + datenow + '\n')
-        f.write('Address = ' + guest_subnet  + '.' + '1' + cidr + '\n')
-        f.write('ListenPort = ' + port_number + '\n')
+        f.write('Address = ' + data_dictionary['guest_subnet']  + '1' + data_dictionary['cidr'] + '\n')
+        f.write('ListenPort = ' + data_dictionary['portno'] + '\n')
         f.write('PrivateLey = ' + priv_public_keys[0] + '\n')
         f.write('SaveConfig = False\n')
         f.write('PostUp = iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE\n')
@@ -122,4 +124,4 @@ else:
         f.write('PostDown = iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE\n')
         f.write('PostUp = sysctl -q -w net.ipv4.ip_forward=1\n')
         f.write('PostDown = sysctl -q -w net.ipv4.ip_forward=0\n')
-    generate_config(2, 3)
+    generate_config(1,1)
