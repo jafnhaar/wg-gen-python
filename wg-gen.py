@@ -49,21 +49,23 @@ def generate_config(seqno: int, count_of_configs: int) -> None:
     Generate wireguard configs and append at the end of wghub.conf
     """
     try:
-        with open('json_data.json') as json_file:
+        current_dir = str(pathlib.Path(__file__).parent.resolve()) # get current directory of a script
+
+        with open(current_dir + os.sep + 'wg-gen.json') as json_file:
             data = json.load(json_file)
         
-        for i in range (seqno + 1, seqno + count_of_configs + 1):
+        for i in range (seqno + 1, seqno + int(count_of_configs) + 1):
             guest_priv_public_keys = generate_wireguard_keys()
             guest_preshared_key = generate_preshared_key()
             counter = str(i)
-            with open('wghub.conf', 'a') as f:
+            with open(current_dir + os.sep + 'wghub.conf', 'a') as f:
                 f.write('\n')
                 f.write('# ' + counter + ' generated at ' + str(datenow) + '\n')
                 f.write('[Peer]\n')
                 f.write('PublicKey = ' + guest_priv_public_keys[1] + '\n')
                 f.write('PresharedKey = ' + guest_preshared_key +'\n')
-                f.write('AllowedIPs = ' + data['guest_subnet'] + counter + '\n')
-            with open('wg_client_' + counter +'.conf', 'w') as f:
+                f.write('AllowedIPs = ' + data['guest_subnet'] + counter + data['guest_cidr'] +'\n')
+            with open(current_dir + os.sep + 'wg_client_' + counter +'.conf', 'w') as f:
                 f.write('[Interface]\n')
                 f.write('Address = ' + data['guest_subnet'] + counter + data['guest_cidr'] + '\n')
                 f.write('DNS = ' + data['dns'] + '\n')
@@ -76,7 +78,7 @@ def generate_config(seqno: int, count_of_configs: int) -> None:
                 f.write('PersistentKeepalive = 25')
             data['seqno'] = counter
             current_dir = str(pathlib.Path(__file__).parent.resolve())
-            with open("json_data.json", 'r+') as file:
+            with open(current_dir + os.sep + "wg-gen.json", 'r+') as file:
                 data_dict = json.load(file)
                 data.update(data)
                 file.seek(0)
@@ -87,16 +89,22 @@ def generate_config(seqno: int, count_of_configs: int) -> None:
     pass
 
 priv_public_keys = generate_wireguard_keys()
-current_dir = str(pathlib.Path(__file__).parent.resolve())
 
+current_dir = str(pathlib.Path(__file__).parent.resolve()) # get current directory of a script
 datenow = str(datetime.datetime.now().isoformat(' ', 'seconds'))
 
-if os.path.isfile('json_data.json'):
-    configs_counter = sys.argv[1]  # IndexError: list index out of range
-    with open('json_data.json') as json_file:
+if os.path.isfile('wg-gen.json'):
+    try:
+        configs_counter = sys.argv[1]
+    except IndexError:
+        configs_counter = 1
+        
+    with open(current_dir + os.sep + 'wg-gen.json') as json_file:
         data_dictionary = json.load(json_file)
-    generate_config(int(data_dictionary['seqno']), 1)
     
+    generate_config(int(data_dictionary['seqno']), configs_counter)
+    
+
     pass
 else:
     data_dictionary = {
@@ -107,13 +115,14 @@ else:
         'guest_subnet': ('10.' + str(random.randrange(0,254)) + '.' + str(random.randrange(0,254)) + '.'),
         'dns': '1.1.1.1',
         'portno': str(random.randrange(9000, 50000)),
-        'ip_address': str(get_ip_address())
+        'ip_address': str(get_ip_address()),
+        'seqno': 1
     }
  
-    with open(current_dir + os.sep + 'json_data.json', 'w') as file:
+    with open(current_dir + os.sep + 'wg-gen.json', 'w') as file:
             file.write(json.dumps(data_dictionary, indent=4))
 
-    with open('wghub.conf', 'a') as f:
+    with open(current_dir + os.sep + 'wghub.conf', 'a') as f:
         f.write('# hub generated at '  + datenow + '\n')
         f.write('Address = ' + data_dictionary['guest_subnet']  + '1' + data_dictionary['cidr'] + '\n')
         f.write('ListenPort = ' + data_dictionary['portno'] + '\n')
@@ -125,4 +134,4 @@ else:
         f.write('PostDown = iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE\n')
         f.write('PostUp = sysctl -q -w net.ipv4.ip_forward=1\n')
         f.write('PostDown = sysctl -q -w net.ipv4.ip_forward=0\n')
-    generate_config(1,1)
+    generate_config(1,1)  # generates 1 config by default in first run
