@@ -11,7 +11,7 @@ import json
 """
 1. Check if files exists in filesystem
 2. If file does not exist create configuration files, get private/publc keys and create n number of configs 
-3. if file exists create additional configuration files in current directory
+3. if file exists create additional configuration files in current directory. Default to 1 file
 """
 
 def generate_wireguard_keys():
@@ -90,7 +90,7 @@ def generate_config(seqno: int, count_of_configs: int) -> None:
 
 priv_public_keys = generate_wireguard_keys()
 
-current_dir = str(pathlib.Path(__file__).parent.resolve()) # get current directory of a script
+current_dir = str(pathlib.Path(__file__).parent.resolve())  # get current directory of a script
 datenow = str(datetime.datetime.now().isoformat(' ', 'seconds'))
 
 if os.path.isfile('wg-gen.json'):
@@ -124,9 +124,10 @@ else:
 
     with open(current_dir + os.sep + 'wghub.conf', 'a') as f:
         f.write('# hub generated at '  + datenow + '\n')
+        f.write('[Interface]\n')
         f.write('Address = ' + data_dictionary['guest_subnet']  + '1' + data_dictionary['cidr'] + '\n')
         f.write('ListenPort = ' + data_dictionary['portno'] + '\n')
-        f.write('PrivateLey = ' + priv_public_keys[0] + '\n')
+        f.write('PrivateKey = ' + priv_public_keys[0] + '\n')
         f.write('SaveConfig = False\n')
         f.write('PostUp = iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE\n')
         f.write('PostUp = iptables -A FORWARD -i %i -j ACCEPT\n')
