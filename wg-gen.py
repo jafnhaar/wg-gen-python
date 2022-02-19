@@ -38,9 +38,9 @@ def get_ip_address() -> str:
 
 
 def generate_qr_code(filename: str) -> None:
-    """generates qr-code from file to stdout"""
+    """Generates qr-code from file to stdout"""
     qr = qrcode.QRCode(version=1, box_size=10, border=5)
-    f = open('wg_client_3.conf', 'r').read()
+    f = open(filename, 'r').read()
     qr.add_data(f)
     f = io.StringIO()
     qr.print_ascii(out=f)
@@ -71,7 +71,8 @@ def generate_config(seqno: int, count_of_configs: int) -> None:
                     f'PresharedKey = {guest_preshared_key}\n'
                     f'AllowedIPs = {data["guest_subnet"]}{counter}{data["guest_cidr"]}\n'
                 )
-            with open(current_dir + os.sep + 'wg_client_' + counter + '.conf', 'w') as f:
+            client_config_name = current_dir + os.sep + 'wg_client_' + counter + '.conf'
+            with open(client_config_name, 'w') as f:
                 f.write(
                     f'[Interface]\n'
                     f'Address = {data["guest_subnet"]}{counter}{data["guest_cidr"]}\n'
@@ -79,16 +80,16 @@ def generate_config(seqno: int, count_of_configs: int) -> None:
                     f'PrivateKey = {guest_priv_public_keys[0]}\n\n'
                     f'[Peer]\n'
                     f'PublicKey = {data["public_key"]}\n'
-                    f'PresharedKey = {guest_preshared_key}'
+                    f'PresharedKey = {guest_preshared_key}\n'
                     f'AllowedIPs = 0.0.0.0/0\n'
                     f'Endpoint = {data["ip_address"]}:{data["portno"]}\n'
-                    f'PersistentKeepalive = 25\n'
+                    f'PersistentKeepalive = 25'
                 )
             data['seqno'] = counter
             current_dir = str(pathlib.Path(__file__).parent.resolve())
             with open('wg-gen.json', 'w') as jsonfile:
                 json.dump(data, jsonfile, indent=4)
-
+            generate_qr_code(client_config_name)
     except:
         raise ValueError
     pass
