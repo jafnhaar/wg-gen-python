@@ -10,14 +10,8 @@ import json
 import qrcode
 import io
 
-"""
-1. Check if files exists in filesystem
-2. If file does not exist create configuration files, get private/publc keys and create n number of configs
-3. if file exists create additional configuration files in current directory. Default to 1 file
-"""
 
-
-def generate_wireguard_keys() -> Tuple:
+def generate_wireguard_keys() -> Tuple[str, str]:
     """
     Generate Wireguard key pair private/public. Both strings.
     """
@@ -30,7 +24,7 @@ def generate_preshared_key() -> str:
     """
     Generate wireguard preshared key for guests.
     """
-    return str(subprocess.check_output("wg genkey", shell=True).decode("utf-8"))
+    return subprocess.check_output("wg genkey", shell=True).decode("utf-8").strip()
 
 
 def get_ip_address() -> str:
@@ -39,7 +33,7 @@ def get_ip_address() -> str:
     Gets system public IP Address from ipinfo.io
     """
     ip_address = get('https://ipinfo.io')
-    ip_address = json.loads(ip_address.text)
+    ip_address = ip_address.json()
     return ip_address['ip']
 
 
@@ -74,7 +68,7 @@ def generate_config(seqno: int, count_of_configs: int) -> None:
                     f'# {counter} generated at {datenow}\n'
                     f'[Peer]\n'
                     f'PublicKey = {guest_priv_public_keys[1]}\n'
-                    f'PresharedKey = {guest_preshared_key}'
+                    f'PresharedKey = {guest_preshared_key}\n'
                     f'AllowedIPs = {data["guest_subnet"]}{counter}{data["guest_cidr"]}\n'
                 )
             with open(current_dir + os.sep + 'wg_client_' + counter + '.conf', 'w') as f:
@@ -138,9 +132,9 @@ else:
     with open(current_dir + os.sep + 'wghub.conf', 'w') as f:
         f.write(
             f'# hub generate at {datenow} \n'
-            f'[Interfacen]\n'
+            f'[Interface]\n'
             f'Address = {data_dictionary["guest_subnet"]}1{data_dictionary["cidr"]}\n'
-            f'ListenPort = {data_dictionary["cidr"]}\n'
+            f'ListenPort = {data_dictionary["portno"]}\n'
             f'PrivateKey = {data_dictionary["private_key"]}\n'
             f'SaveConfig = False\n'
             f'PostUp = iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE\n'

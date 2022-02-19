@@ -1,5 +1,9 @@
 # wg-gen-python
-Basic usage: 
+### What this script does?
+Generates pair of client-server configuration for Wireguard VPN. With ease. In future it will generates qr-codes and stdout them to console. 
+Script automatically sets masquerade wg interface for you (with iptables) and does sysctl magic. No need to worry about anything. It just works.
+
+### Basic usage: 
 ```Bash
 apt install python -y
 cd /etc/wireguard
@@ -8,7 +12,7 @@ cd wg-gen-python
 python wg-gen.py
 ```
 
-This command will generate json-data file where you can edit whatever you like. Don't forget to edit ip_address if your machine is behind NAT.  
+First run of this commands will generate basic configuration. After that if wg-gen.json exists it will create additional config files for you 
 
 If you want to generate qrcode out of your configuration file use this command:
 
@@ -19,7 +23,13 @@ qrencode -t ansiutf8 < wg_client_3.conf
 
 # Running Wireguard
 ```Bash
-ln -s $PWD/wghub.con /etc/wireguard/wg0.conf
+ln -s $PWD/wghub.conf /etc/wireguard/wg0.conf
 wg-quick up wg0
 ```
+
+### Currently tested on:
+ - Alpine Linux 3.15 (LXC)
+ - Debian 11
+ - Arch Linux
+
 WIP
