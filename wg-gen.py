@@ -69,52 +69,27 @@ def generate_config(seqno: int, count_of_configs: int) -> None:
             guest_preshared_key = generate_preshared_key()
             counter = str(i)
             with open(current_dir + os.sep + 'wghub.conf', 'a') as f:
-                f.write('\n')
-                f.write('# ' 
-                        + counter 
-                        + ' generated at ' 
-                        + str(datenow) 
-                        + '\n'
-                        )
-                f.write('[Peer]\n')
-                f.write('PublicKey = ' 
-                        + guest_priv_public_keys[1] 
-                        + '\n'
-                        )
-                f.write('PresharedKey = ' 
-                        + guest_preshared_key 
-                        + '\n'
-                        )
-                f.write('AllowedIPs = ' 
-                        + data['guest_subnet'] 
-                        + counter 
-                        + data['guest_cidr'] 
-                        + '\n')
+                f.write(
+                    f'\n'
+                    f'# {counter} generated at {datenow}\n'
+                    f'[Peer]\n'
+                    f'PublicKey = {guest_priv_public_keys[1]}\n'
+                    f'PresharedKey = {guest_preshared_key}'
+                    f'AllowedIPs = {data["guest_subnet"]}{counter}{data["guest_cidr"]}\n'
+                )
             with open(current_dir + os.sep + 'wg_client_' + counter + '.conf', 'w') as f:
-                f.write('[Interface]\n')
-                f.write('Address = ' 
-                        + data['guest_subnet'] 
-                        + counter 
-                        + data['guest_cidr'] 
-                        + '\n')
-                f.write('DNS = ' 
-                        + data['dns'] 
-                        + '\n')
-                f.write('PrivateKey = ' 
-                        + guest_priv_public_keys[0] 
-                        + '\n\n')
-                f.write('[Peer]\n')
-                f.write('PublicKey = ' 
-                        + data['public_key'] 
-                        + '\n')
-                f.write('PresharedKey = ' 
-                        + guest_preshared_key)
-                f.write('AllowedIPs = 0.0.0.0/0\n')
-                f.write('Endpoint = ' 
-                        + data['ip_address'] + ':' 
-                        + data['portno'] 
-                        + '\n')
-                f.write('PersistentKeepalive = 25')
+                f.write(
+                    f'[Interface]\n'
+                    f'Address = {data["guest_subnet"]}{counter}{data["guest_cidr"]}\n'
+                    f'DNS = {data["dns"]}\n'
+                    f'PrivateKey = {guest_priv_public_keys[0]}\n\n'
+                    f'[Peer]\n'
+                    f'PublicKey = {data["public_key"]}\n'
+                    f'PresharedKey = {guest_preshared_key}'
+                    f'AllowedIPs = 0.0.0.0/0\n'
+                    f'Endpoint = {data["ip_address"]}:{data["portno"]}\n'
+                    f'PersistentKeepalive = 25\n'
+                )
             data['seqno'] = counter
             current_dir = str(pathlib.Path(__file__).parent.resolve())
             with open('wg-gen.json', 'w') as jsonfile:
@@ -161,20 +136,18 @@ else:
         file.write(json.dumps(data_dictionary, indent=4))
 
     with open(current_dir + os.sep + 'wghub.conf', 'w') as f:
-        f.write('# hub generated at ' + datenow + '\n')
-        f.write('[Interface]\n')
-        f.write('Address = ' 
-                + data_dictionary['guest_subnet'] + '1' 
-                + data_dictionary['cidr'] + '\n')
-        f.write('ListenPort = ' 
-                + data_dictionary['portno'] + '\n')
-        f.write('PrivateKey = ' 
-                + priv_public_keys[0] + '\n')
-        f.write('SaveConfig = False\n')
-        f.write('PostUp = iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE\n')
-        f.write('PostUp = iptables -A FORWARD -i %i -j ACCEPT\n')
-        f.write('PostDown = PostDown = iptables -D FORWARD -i %i -j ACCEPT\n')
-        f.write('PostDown = iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE\n')
-        f.write('PostUp = sysctl -q -w net.ipv4.ip_forward=1\n')
-        f.write('PostDown = sysctl -q -w net.ipv4.ip_forward=0\n')
+        f.write(
+            f'# hub generate at {datenow} \n'
+            f'[Interfacen]\n'
+            f'Address = {data_dictionary["guest_subnet"]}1{data_dictionary["cidr"]}\n'
+            f'ListenPort = {data_dictionary["cidr"]}\n'
+            f'PrivateKey = {data_dictionary["private_key"]}\n'
+            f'SaveConfig = False\n'
+            f'PostUp = iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE\n'
+            f'PostUp = iptables -A FORWARD -i %i -j ACCEPT\n'
+            f'PostDown = PostDown = iptables -D FORWARD -i %i -j ACCEPT\n'
+            f'PostDown = iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE\n'
+            f'PostUp = sysctl -q -w net.ipv4.ip_forward=1\n'
+            f'PostDown = sysctl -q -w net.ipv4.ip_forward=0\n'
+        )
     generate_config(2, 1)  # generates 1 config by default in first run
