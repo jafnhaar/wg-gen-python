@@ -117,9 +117,7 @@ else:
         'public_key': priv_public_keys[1],
         'cidr': '/24',
         'guest_cidr': '/32',
-        'guest_subnet': ('10.'
-                         + str(random.randrange(0, 254)) + '.'
-                         + str(random.randrange(0, 254)) + '.'
+        'guest_subnet': ('10.' + str(random.randrange(0, 254)) + '.' + str(random.randrange(0, 254)) + '.'
                          ),
         'dns': '1.1.1.1',
         'portno': str(random.randrange(9000, 50000)),
