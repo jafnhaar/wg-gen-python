@@ -1,15 +1,15 @@
-from typing import Tuple
+import io
+import json
+import os.path
+import random
 import sys
 import subprocess
-from requests import get
-import random
-from datetime import datetime
-import os.path
 import pathlib
-import json
 import qrcode
-import io
 
+from typing import Tuple
+from datetime import datetime
+from requests import get
 
 def generate_wireguard_keys() -> Tuple[str, str]:
     """
@@ -32,9 +32,7 @@ def get_ip_address() -> str:
     """
     Gets system public IP Address from ipinfo.io
     """
-    ip_address = get('https://ipinfo.io')
-    ip_address = ip_address.json()
-    return ip_address['ip']
+    return get('https://ipinfo.io').json()['ip']
 
 
 def generate_qr_code(filename: str) -> None:
@@ -52,47 +50,46 @@ def generate_config(seqno: int, count_of_configs: int) -> None:
     """
     Generate wireguard configs and append at the end of wghub.conf
     """
-    try:
-        current_dir = str(pathlib.Path(__file__).parent.resolve())  # get current directory of a script
+    # try:
+    current_dir = str(pathlib.Path(__file__).parent.resolve())  # get current directory of a script
 
-        with open(current_dir + os.sep + 'wg-gen.json') as json_file:
-            data = json.load(json_file)
+    with open(current_dir + os.sep + 'wg-gen.json') as json_file:
+        data = json.load(json_file)
 
-        for i in range(seqno, seqno + int(count_of_configs)):
-            guest_priv_public_keys = generate_wireguard_keys()
-            guest_preshared_key = generate_preshared_key()
-            counter = str(i)
-            with open(current_dir + os.sep + 'wghub.conf', 'a') as f:
-                f.write(
-                    f'\n'
-                    f'# {counter} generated at {datenow}\n'
-                    f'[Peer]\n'
-                    f'PublicKey = {guest_priv_public_keys[1]}\n'
-                    f'PresharedKey = {guest_preshared_key}\n'
-                    f'AllowedIPs = {data["guest_subnet"]}{counter}{data["guest_cidr"]}\n'
-                )
-            client_config_name = current_dir + os.sep + 'wg_client_' + counter + '.conf'
-            with open(client_config_name, 'w') as f:
-                f.write(
-                    f'[Interface]\n'
-                    f'Address = {data["guest_subnet"]}{counter}{data["guest_cidr"]}\n'
-                    f'DNS = {data["dns"]}\n'
-                    f'PrivateKey = {guest_priv_public_keys[0]}\n\n'
-                    f'[Peer]\n'
-                    f'PublicKey = {data["public_key"]}\n'
-                    f'PresharedKey = {guest_preshared_key}\n'
-                    f'AllowedIPs = 0.0.0.0/0\n'
-                    f'Endpoint = {data["ip_address"]}:{data["portno"]}\n'
-                    f'PersistentKeepalive = 25'
-                )
-            data['seqno'] = counter
-            current_dir = str(pathlib.Path(__file__).parent.resolve())
-            with open('wg-gen.json', 'w') as jsonfile:
-                json.dump(data, jsonfile, indent=4)
-            generate_qr_code(client_config_name)
-    except:
-        raise ValueError
-    pass
+    for i in range(seqno, seqno + int(count_of_configs)):
+        guest_priv_public_keys = generate_wireguard_keys()
+        guest_preshared_key = generate_preshared_key()
+        counter = str(i)
+        with open(current_dir + os.sep + 'wghub.conf', 'a') as f:
+            f.write(
+                f'\n'
+                f'# {counter} generated at {datenow}\n'
+                f'[Peer]\n'
+                f'PublicKey = {guest_priv_public_keys[1]}\n'
+                f'PresharedKey = {guest_preshared_key}\n'
+                f'AllowedIPs = {data["guest_subnet"]}{counter}{data["guest_cidr"]}\n'
+            )
+        client_config_name = current_dir + os.sep + 'wg_client_' + counter + '.conf'
+        with open(client_config_name, 'w') as f:
+            f.write(
+                f'[Interface]\n'
+                f'Address = {data["guest_subnet"]}{counter}{data["guest_cidr"]}\n'
+                f'DNS = {data["dns"]}\n'
+                f'PrivateKey = {guest_priv_public_keys[0]}\n\n'
+                f'[Peer]\n'
+                f'PublicKey = {data["public_key"]}\n'
+                f'PresharedKey = {guest_preshared_key}\n'
+                f'AllowedIPs = 0.0.0.0/0\n'
+                f'Endpoint = {data["ip_address"]}:{data["portno"]}\n'
+                f'PersistentKeepalive = 25'
+            )
+        data['seqno'] = counter
+        current_dir = str(pathlib.Path(__file__).parent.resolve())
+        with open('wg-gen.json', 'w') as jsonfile:
+            json.dump(data, jsonfile, indent=4)
+        generate_qr_code(client_config_name)
+    # except:
+    #     raise ValueError
 
 
 priv_public_keys = generate_wireguard_keys()
@@ -117,9 +114,7 @@ else:
         'public_key': priv_public_keys[1],
         'cidr': '/24',
         'guest_cidr': '/32',
-        'guest_subnet': ('10.'
-                         + str(random.randrange(0, 254)) + '.'
-                         + str(random.randrange(0, 254)) + '.'
+        'guest_subnet': ('10.' + str(random.randrange(0, 254)) + '.' + str(random.randrange(0, 254)) + '.'
                          ),
         'dns': '1.1.1.1',
         'portno': str(random.randrange(9000, 50000)),

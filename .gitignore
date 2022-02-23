@@ -1,3 +1,4 @@
 *.conf
 *.json
 main.py
+venv/
