@@ -2,7 +2,11 @@
 ### What this script does?
 Generates pair of client-server configuration for Wireguard VPN. With ease. In future it will generates qr-codes and stdout them to console. 
 Script automatically sets masquerade wg interface for you (with iptables) and does sysctl magic. No need to worry about anything. It just works.
-
+### Requirements
+```
+curl
+python3
+```
 ### Basic usage: 
 ```Bash
 apt install python3 -y
