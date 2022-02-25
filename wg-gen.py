@@ -1,6 +1,7 @@
 import json
 import os.path
 import random
+from signal import raise_signal
 import sys
 import subprocess
 
@@ -89,6 +90,7 @@ wireguard = Wireguard()
 if os.path.isfile('./data.json'):
     wireguard_data = wireguard.read_json()
     wireguard.generate_guest_configs('client', wireguard_data)
+    wireguard.save_json(wireguard_data)
 else:
     hub_keys = wireguard.generate_wg_keys()
     wireguard_data = {
