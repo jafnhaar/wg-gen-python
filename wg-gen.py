@@ -49,6 +49,7 @@ class Wireguard:
             file.write(
                 f'#{data["seqno"]} generated at {self.get_current_time()} for {name}\n'
                 f'[Interface]\n'
+                f'PrivateKey = {peer_keys[0]}\n'
                 f'Address = {data["private_ip"]}{data["seqno"]}{data["cidr"]}\n'
                 f'DNS = {data["DNS"]}\n\n'
                 f'[Peer]\n'
