@@ -51,7 +51,7 @@ class Wireguard:
                 f'[Interface]\n'
                 f'PrivateKey = {peer_keys[0]}\n'
                 f'Address = {data["private_ip"]}{data["seqno"]}{data["cidr"]}\n'
-                f'MTU = 1280'
+                f'MTU = 1280\n'
                 f'DNS = {data["DNS"]}\n\n'
                 f'[Peer]\n'
                 f'PublicKey = {data["hub_public_key"]}\n'
