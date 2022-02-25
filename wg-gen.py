@@ -43,7 +43,7 @@ class Wireguard:
                 f'[Peer]\n'
                 f'PublicKey = {peer_keys[1]}\n'
                 f'PresharedKey = {preshared_key}\n'
-                f'AllowedIPs = {data["private_ip"]}.{data["seqno"]}/32'
+                f'AllowedIPs = {data["private_ip"]}{data["seqno"]}/32'
             )
         with open('wgclient_' + data['seqno'] + '.conf', 'w') as file:
             file.write(
