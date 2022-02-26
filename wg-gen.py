@@ -3,8 +3,8 @@ import os.path
 import random
 import sys
 import subprocess
-from distutils.spawn import find_executable
 
+from distutils.spawn import find_executable
 from datetime import datetime
 from typing import Dict, Tuple
 
