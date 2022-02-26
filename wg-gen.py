@@ -10,16 +10,20 @@ from typing import Dict, Tuple
 
 class Wireguard:
     def generate_private_ip(self):
+        """Returns random ip address in 10.0.0.0/8 range"""
         return f'10.{random.randrange(0, 255)}.{random.randrange(0, 255)}.'
 
     def get_current_time(self) -> str:
+        """Returns current time w/o milliseconds"""
         return datetime.now().isoformat(' ', 'seconds')
 
     def read_json(self) -> json:
+        """Reads json from a file"""
         with open('data.json', 'r') as file:
             return json.load(file)
     
     def save_json(self, data: Dict) -> None:
+        """Saves json to a file"""
         with open('data.json', 'w') as file:
             json.dump(data, file, indent=4)
 
@@ -68,6 +72,7 @@ class Wireguard:
             return data
 
     def generate_hub(self, data: Dict[str, str]) -> None:
+        """Generates wghub.conf configuration file from dictionary"""
         with open('wghub.conf', 'w') as file:
             file.write(
                 f'# hub generated at {self.get_current_time()}\n'
@@ -89,6 +94,7 @@ class Wireguard:
         return json.loads(subprocess.check_output('curl -s https://ipinfo.io', shell=True).decode('utf-8'))['ip']
     
     def gen_qr_code(self, data: dict) -> None:
+        """Generates qr code from a configuration file"""
         subprocess.run(f'qrencode -t ansiutf8 < wgclient_{int(data["seqno"]) - 1}.conf', shell=True)
     
     def is_tool(self, name):
