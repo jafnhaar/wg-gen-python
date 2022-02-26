@@ -4,7 +4,7 @@ import random
 import sys
 import subprocess
 
-from distutils.spawn import find_executable
+#from distutils.spawn import find_executable
 from datetime import datetime
 from typing import Dict, Tuple
 
@@ -42,7 +42,7 @@ class Wireguard:
         peer_keys = self.generate_wg_keys()
         preshared_key = self.generate_preshared_key()
         if int(data['seqno']) > 254:
-            return print("Maximum amount of IPs in /24 subnet mask exceeded")
+            return print("Maximum amount of IPs in /24 subnet exceeded")
         else:
             with open('wghub.conf', 'a') as file:
                 file.write(
@@ -97,9 +97,9 @@ class Wireguard:
         """Generates qr code from a configuration file"""
         subprocess.run(f'qrencode -t ansiutf8 < wgclient_{int(data["seqno"]) - 1}.conf', shell=True)
 
-    def is_tool(self, name):
-        """Check whether `name` is on PATH."""
-        return find_executable(name) is not None
+    #def is_tool(self, name):
+    #    """Check whether `name` is on PATH."""
+    #    return find_executable(name) is not None
 
 
 wireguard = Wireguard()
@@ -111,10 +111,8 @@ if os.path.isfile('./data.json'):
     except IndexError:
         wireguard_data = wireguard.generate_guest_configs('client', wireguard_data)
     wireguard.save_json(wireguard_data)
-    if wireguard.is_tool('qrencode'):
-        wireguard.gen_qr_code(wireguard_data)
-    else:
-        print('qrencode is not installed, not able to generate a qr-code')
+    # if wireguard.is_tool('qrencode'):
+    wireguard.gen_qr_code(wireguard_data)
 else:
     if wireguard.is_tool('curl') and wireguard.is_tool('wg'):
         hub_keys = wireguard.generate_wg_keys()
@@ -136,8 +134,7 @@ else:
         except IndexError:
             wireguard_data = wireguard.generate_guest_configs('client', wireguard_data)
 
-        if wireguard.is_tool('qrencode'):
-            wireguard.gen_qr_code(wireguard_data)
+        wireguard.gen_qr_code(wireguard_data)
         wireguard.save_json(wireguard_data)
     else:
         print('Please check that you have wireguard-tools and curl installed')
