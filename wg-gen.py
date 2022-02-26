@@ -36,32 +36,35 @@ class Wireguard:
         "Generates peer config and adds it to wghub.conf"
         peer_keys = self.generate_wg_keys()
         preshared_key = self.generate_preshared_key()
-        with open('wghub.conf', 'a') as file:
-            file.write(
-                f'\n\n'
-                f'#{data["seqno"]} Generated at {self.get_current_time()} for {name}\n'
-                f'[Peer]\n'
-                f'PublicKey = {peer_keys[1]}\n'
-                f'PresharedKey = {preshared_key}\n'
-                f'AllowedIPs = {data["private_ip"]}{data["seqno"]}/32'
-            )
-        with open('wgclient_' + data['seqno'] + '.conf', 'w') as file:
-            file.write(
-                f'#{data["seqno"]} generated at {self.get_current_time()} for {name}\n'
-                f'[Interface]\n'
-                f'PrivateKey = {peer_keys[0]}\n'
-                f'Address = {data["private_ip"]}{data["seqno"]}{data["cidr"]}\n'
-                f'MTU = 1280\n'
-                f'DNS = {data["DNS"]}\n\n'
-                f'[Peer]\n'
-                f'PublicKey = {data["hub_public_key"]}\n'
-                f'PresharedKey = {preshared_key}\n'
-                f'AllowedIPs = 0.0.0.0/0\n'
-                f'Endpoint = {data["public_ip"]}:{data["port"]}\n'
-                f'PersistentKeepalive = 25'
-            )
-        data['seqno'] = str(int(data['seqno']) + 1)
-        return data
+        if int(data['seqno']) > 254:
+            print("Maximum amount of IPs in /24 subnet mask exceeded")
+        else:
+            with open('wghub.conf', 'a') as file:
+                file.write(
+                    f'\n\n'
+                    f'#{data["seqno"]} Generated at {self.get_current_time()} for {name}\n'
+                    f'[Peer]\n'
+                    f'PublicKey = {peer_keys[1]}\n'
+                    f'PresharedKey = {preshared_key}\n'
+                    f'AllowedIPs = {data["private_ip"]}{data["seqno"]}/32'
+                )
+            with open('wgclient_' + data['seqno'] + '.conf', 'w') as file:
+                file.write(
+                    f'#{data["seqno"]} generated at {self.get_current_time()} for {name}\n'
+                    f'[Interface]\n'
+                    f'PrivateKey = {peer_keys[0]}\n'
+                    f'Address = {data["private_ip"]}{data["seqno"]}{data["cidr"]}\n'
+                    f'MTU = 1280\n'
+                    f'DNS = {data["DNS"]}\n\n'
+                    f'[Peer]\n'
+                    f'PublicKey = {data["hub_public_key"]}\n'
+                    f'PresharedKey = {preshared_key}\n'
+                    f'AllowedIPs = 0.0.0.0/0\n'
+                    f'Endpoint = {data["public_ip"]}:{data["port"]}\n'
+                    f'PersistentKeepalive = 25'
+                )
+            data['seqno'] = str(int(data['seqno']) + 1)
+            return data
 
     def generate_hub(self, data: Dict[str, str]) -> None:
         with open('wghub.conf', 'w') as file:
@@ -84,8 +87,8 @@ class Wireguard:
         """Returns a string of a public ip address"""
         return json.loads(subprocess.check_output('curl -s https://ipinfo.io', shell=True).decode('utf-8'))['ip']
     
-    def gen_qr_code(self) -> None:
-        pass
+    def gen_qr_code(self, data: dict) -> None:
+        subprocess.run(f'qrencode -t ansiutf8 < wgclient_{int(data["seqno"]) - 1}.conf', shell=True)
 
  
 wireguard = Wireguard()
@@ -93,6 +96,7 @@ if os.path.isfile('./data.json'):
     wireguard_data = wireguard.read_json()
     wireguard.generate_guest_configs('client', wireguard_data)
     wireguard.save_json(wireguard_data)
+    wireguard.gen_qr_code(wireguard_data)
 else:
     hub_keys = wireguard.generate_wg_keys()
     wireguard_data = {
