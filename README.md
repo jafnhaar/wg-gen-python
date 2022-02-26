@@ -6,6 +6,7 @@ Script automatically sets masquerade wg interface for you (with iptables) and do
 ```
 curl
 python3
+wireguard-tools
 ```
 ### Basic usage: 
 ```Bash
