@@ -1,7 +1,6 @@
 import json
 import os.path
 import random
-from signal import raise_signal
 import sys
 import subprocess
 
@@ -75,7 +74,7 @@ class Wireguard:
                 f'SaveConfig = False\n'
                 f'PostUp = iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE\n'
                 f'PostUp = iptables -A FORWARD -i %i -j ACCEPT\n'
-                f'PostDown = PostDown = iptables -D FORWARD -i %i -j ACCEPT\n'
+                f'PostDown = iptables -D FORWARD -i %i -j ACCEPT\n'
                 f'PostDown = iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE\n'
                 f'PostUp = sysctl -q -w net.ipv4.ip_forward=1\n'
                 f'PostDown = sysctl -q -w net.ipv4.ip_forward=0\n'
@@ -84,6 +83,9 @@ class Wireguard:
     def get_public_ip(self) -> str:
         """Returns a string of a public ip address"""
         return json.loads(subprocess.check_output('curl -s https://ipinfo.io', shell=True).decode('utf-8'))['ip']
+    
+    def gen_qr_code(self) -> None:
+        pass
 
  
 wireguard = Wireguard()
