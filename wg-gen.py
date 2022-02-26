@@ -120,6 +120,8 @@ else:
         }
         wireguard.generate_hub(wireguard_data)
         wireguard_data = wireguard.generate_guest_configs('client', wireguard_data)
+        if wireguard.is_tool('qrencode'):
+            wireguard.gen_qr_code(wireguard_data)
         wireguard.save_json(wireguard_data)
     else:
         print('Please check that you have wireguard-tools and curl installed')
