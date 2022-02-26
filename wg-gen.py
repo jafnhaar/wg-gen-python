@@ -1,12 +1,12 @@
 import json
 import os.path
 import random
-import sys
 import subprocess
-
-#from distutils.spawn import find_executable
+import sys
+# from distutils.spawn import find_executable
 from datetime import datetime
 from typing import Dict, Tuple
+
 
 class Wireguard:
     def generate_private_ip(self):
@@ -97,7 +97,7 @@ class Wireguard:
         """Generates qr code from a configuration file"""
         subprocess.run(f'qrencode -t ansiutf8 < wgclient_{int(data["seqno"]) - 1}.conf', shell=True)
 
-    #def is_tool(self, name):
+    # def is_tool(self, name):
     #    """Check whether `name` is on PATH."""
     #    return find_executable(name) is not None
 
@@ -114,25 +114,24 @@ if os.path.isfile('./data.json'):
     # if wireguard.is_tool('qrencode'):
     wireguard.gen_qr_code(wireguard_data)
 else:
-    if wireguard.is_tool('curl') and wireguard.is_tool('wg'):
-        hub_keys = wireguard.generate_wg_keys()
-        wireguard_data = {
-            'private_ip': wireguard.generate_private_ip(),
-            'public_ip': wireguard.get_public_ip(),
-            'hub_private_key': hub_keys[0],
-            'hub_public_key': hub_keys[1],
-            'seqno': '2',
-            'port': str(random.randrange(10000, 60000)),
-            'cidr': '/24',
-            'DNS': '1.1.1.1'
-        }
-        wireguard.generate_hub(wireguard_data)
+    hub_keys = wireguard.generate_wg_keys()
+    wireguard_data = {
+        'private_ip': wireguard.generate_private_ip(),
+        'public_ip': wireguard.get_public_ip(),
+        'hub_private_key': hub_keys[0],
+        'hub_public_key': hub_keys[1],
+        'seqno': '2',
+        'port': str(random.randrange(10000, 60000)),
+        'cidr': '/24',
+        'DNS': '1.1.1.1'
+    }
+    wireguard.generate_hub(wireguard_data)
 
-        try:
-            client_name = sys.argv[1]
-            wireguard_data = wireguard.generate_guest_configs(client_name, wireguard_data)
-        except IndexError:
-            wireguard_data = wireguard.generate_guest_configs('client', wireguard_data)
+    try:
+        client_name = sys.argv[1]
+        wireguard_data = wireguard.generate_guest_configs(client_name, wireguard_data)
+    except IndexError:
+        wireguard_data = wireguard.generate_guest_configs('client', wireguard_data)
 
         wireguard.gen_qr_code(wireguard_data)
         wireguard.save_json(wireguard_data)
