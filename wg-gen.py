@@ -21,7 +21,7 @@ class Wireguard:
         """Reads json from a file"""
         with open('data.json', 'r') as file:
             return json.load(file)
-    
+
     def save_json(self, data: Dict) -> None:
         """Saves json to a file"""
         with open('data.json', 'w') as file:
@@ -42,7 +42,7 @@ class Wireguard:
         peer_keys = self.generate_wg_keys()
         preshared_key = self.generate_preshared_key()
         if int(data['seqno']) > 254:
-            print("Maximum amount of IPs in /24 subnet mask exceeded")
+            return print("Maximum amount of IPs in /24 subnet mask exceeded")
         else:
             with open('wghub.conf', 'a') as file:
                 file.write(
@@ -92,16 +92,16 @@ class Wireguard:
     def get_public_ip(self) -> str:
         """Returns a string of a public ip address"""
         return json.loads(subprocess.check_output('curl -s https://ipinfo.io', shell=True).decode('utf-8'))['ip']
-    
+
     def gen_qr_code(self, data: dict) -> None:
         """Generates qr code from a configuration file"""
         subprocess.run(f'qrencode -t ansiutf8 < wgclient_{int(data["seqno"]) - 1}.conf', shell=True)
-    
+
     def is_tool(self, name):
         """Check whether `name` is on PATH."""
         return find_executable(name) is not None
 
- 
+
 wireguard = Wireguard()
 if os.path.isfile('./data.json'):
     wireguard_data = wireguard.read_json()
