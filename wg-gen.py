@@ -99,12 +99,16 @@ class Wireguard:
 wireguard = Wireguard()
 if os.path.isfile('./data.json'):
     wireguard_data = wireguard.read_json()
-    wireguard.generate_guest_configs('client', wireguard_data)
+    try:
+        client_name = sys.argv[1]
+        wireguard_data = wireguard.generate_guest_configs(client_name, wireguard_data)
+    except IndexError:
+        wireguard_data = wireguard.generate_guest_configs('client', wireguard_data)
     wireguard.save_json(wireguard_data)
     if wireguard.is_tool('qrencode'):
         wireguard.gen_qr_code(wireguard_data)
     else:
-        print('qrencode is not installed, not able to return a qr-code')
+        print('qrencode is not installed, not able to generate a qr-code')
 else:
     if wireguard.is_tool('curl') and wireguard.is_tool('wg'):
         hub_keys = wireguard.generate_wg_keys()
@@ -119,7 +123,13 @@ else:
             'DNS': '1.1.1.1'
         }
         wireguard.generate_hub(wireguard_data)
-        wireguard_data = wireguard.generate_guest_configs('client', wireguard_data)
+
+        try:
+            client_name = sys.argv[1]
+            wireguard_data = wireguard.generate_guest_configs(client_name, wireguard_data)
+        except IndexError:
+            wireguard_data = wireguard.generate_guest_configs('client', wireguard_data)
+
         if wireguard.is_tool('qrencode'):
             wireguard.gen_qr_code(wireguard_data)
         wireguard.save_json(wireguard_data)
