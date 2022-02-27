@@ -42,7 +42,8 @@ wg-quick up wg0
 
 ### Currently tested on:
  - Alpine Linux 3.15 (LXC)
- - Debian 11
  - Arch Linux
+ - Debian 11
+ - Ubuntu 21.10 (LXC)
 
 WIP
