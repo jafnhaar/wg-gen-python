@@ -124,11 +124,8 @@ else:
     try:
         client_name = sys.argv[1]
         wireguard_data = wireguard.generate_guest_configs(client_name, wireguard_data)
-        wireguard.gen_qr_code(wireguard_data)
-        wireguard.save_json(wireguard_data)
-
     except IndexError:
         wireguard_data = wireguard.generate_guest_configs('client', wireguard_data)
-
-        wireguard.gen_qr_code(wireguard_data)
-        wireguard.save_json(wireguard_data)
+    
+    wireguard.gen_qr_code(wireguard_data)
+    wireguard.save_json(wireguard_data)
