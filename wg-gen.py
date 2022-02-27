@@ -3,7 +3,6 @@ import os.path
 import random
 import subprocess
 import sys
-# from distutils.spawn import find_executable
 from datetime import datetime
 from typing import Dict, Tuple
 
@@ -97,10 +96,6 @@ class Wireguard:
         """Generates qr code from a configuration file"""
         subprocess.run(f'qrencode -t ansiutf8 < wgclient_{int(data["seqno"]) - 1}.conf', shell=True)
 
-    # def is_tool(self, name):
-    #    """Check whether `name` is on PATH."""
-    #    return find_executable(name) is not None
-
 
 wireguard = Wireguard()
 if os.path.isfile('./data.json'):
@@ -111,7 +106,6 @@ if os.path.isfile('./data.json'):
     except IndexError:
         wireguard_data = wireguard.generate_guest_configs('client', wireguard_data)
     wireguard.save_json(wireguard_data)
-    # if wireguard.is_tool('qrencode'):
     wireguard.gen_qr_code(wireguard_data)
 else:
     hub_keys = wireguard.generate_wg_keys()
@@ -130,10 +124,11 @@ else:
     try:
         client_name = sys.argv[1]
         wireguard_data = wireguard.generate_guest_configs(client_name, wireguard_data)
+        wireguard.gen_qr_code(wireguard_data)
+        wireguard.save_json(wireguard_data)
+
     except IndexError:
         wireguard_data = wireguard.generate_guest_configs('client', wireguard_data)
 
         wireguard.gen_qr_code(wireguard_data)
         wireguard.save_json(wireguard_data)
-    else:
-        print('Please check that you have wireguard-tools and curl installed')
