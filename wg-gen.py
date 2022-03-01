@@ -7,7 +7,11 @@ from datetime import datetime
 from typing import Dict, Tuple
 
 
-class Wireguard:
+class Basic:
+    def get_public_ip(self) -> str:
+        """Returns a string of a public ip address"""
+        return json.loads(subprocess.check_output('curl -s https://ipinfo.io', shell=True).decode('utf-8'))['ip']
+
     def generate_private_ip(self):
         """Returns random ip address in 10.0.0.0/8 range"""
         return f'10.{random.randrange(0, 255)}.{random.randrange(0, 255)}.'
@@ -26,6 +30,8 @@ class Wireguard:
         with open('data.json', 'w') as file:
             json.dump(data, file, indent=4)
 
+
+class Wireguard(Basic):
     def generate_wg_keys(self) -> Tuple[str, str]:
         """Generate key pair for wireguard peer."""
         privkey = subprocess.check_output('wg genkey', shell=True).decode('utf-8').strip()
@@ -36,8 +42,8 @@ class Wireguard:
         """Generate a preshared key"""
         return subprocess.check_output('wg genkey', shell=True).decode('utf-8').strip()
 
-    def generate_guest_configs(self, name: str, data: Dict) -> None:
-        "Generates peer config and adds it to wghub.conf"
+    def generate_guest_configs(self, name: str, data: Dict) -> Dict:
+        "Generates peer config and adds it to wghub.conf. Takes config json file and spits it back with changed seqno"
         peer_keys = self.generate_wg_keys()
         preshared_key = self.generate_preshared_key()
         if int(data['seqno']) > 254:
@@ -88,44 +94,45 @@ class Wireguard:
                 f'PostDown = sysctl -q -w net.ipv4.ip_forward=0\n'
             )
 
-    def get_public_ip(self) -> str:
-        """Returns a string of a public ip address"""
-        return json.loads(subprocess.check_output('curl -s https://ipinfo.io', shell=True).decode('utf-8'))['ip']
-
     def gen_qr_code(self, data: dict) -> None:
         """Generates qr code from a configuration file"""
         subprocess.run(f'qrencode -t ansiutf8 < wgclient_{int(data["seqno"]) - 1}.conf', shell=True)
 
 
-wireguard = Wireguard()
-if os.path.isfile('./data.json'):
-    wireguard_data = wireguard.read_json()
-    try:
-        client_name = sys.argv[1]
-        wireguard_data = wireguard.generate_guest_configs(client_name, wireguard_data)
-    except IndexError:
-        wireguard_data = wireguard.generate_guest_configs('client', wireguard_data)
-    wireguard.save_json(wireguard_data)
-    wireguard.gen_qr_code(wireguard_data)
-else:
-    hub_keys = wireguard.generate_wg_keys()
-    wireguard_data = {
-        'private_ip': wireguard.generate_private_ip(),
-        'public_ip': wireguard.get_public_ip(),
-        'hub_private_key': hub_keys[0],
-        'hub_public_key': hub_keys[1],
-        'seqno': '2',
-        'port': str(random.randrange(10000, 60000)),
-        'cidr': '/24',
-        'DNS': '1.1.1.1'
-    }
-    wireguard.generate_hub(wireguard_data)
+def main():
+    wireguard = Wireguard()
+    if os.path.isfile('./data.json'):
+        wireguard_data = wireguard.read_json()
+        try:
+            client_name = sys.argv[1]
+            wireguard_data = wireguard.generate_guest_configs(client_name, wireguard_data)
+        except IndexError:
+            wireguard_data = wireguard.generate_guest_configs('client', wireguard_data)
 
-    try:
-        client_name = sys.argv[1]
-        wireguard_data = wireguard.generate_guest_configs(client_name, wireguard_data)
-    except IndexError:
-        wireguard_data = wireguard.generate_guest_configs('client', wireguard_data)
-    
-    wireguard.gen_qr_code(wireguard_data)
-    wireguard.save_json(wireguard_data)
+        wireguard.save_json(wireguard_data)
+        wireguard.gen_qr_code(wireguard_data)
+    else:
+        hub_keys = wireguard.generate_wg_keys()
+        wireguard_data = {
+            'private_ip': wireguard.generate_private_ip(),
+            'public_ip': wireguard.get_public_ip(),
+            'hub_private_key': hub_keys[0],
+            'hub_public_key': hub_keys[1],
+            'seqno': '2',
+            'port': str(random.randrange(10000, 60000)),
+            'cidr': '/24',
+            'DNS': '1.1.1.1'
+        }
+        wireguard.generate_hub(wireguard_data)
+
+        try:
+            client_name = sys.argv[1]
+            wireguard_data = wireguard.generate_guest_configs(client_name, wireguard_data)
+        except IndexError:
+            wireguard_data = wireguard.generate_guest_configs('client', wireguard_data)
+
+        wireguard.gen_qr_code(wireguard_data)
+        wireguard.save_json(wireguard_data)
+
+if __name__ == '__main__':
+    main()
