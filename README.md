@@ -14,7 +14,8 @@ apt install python3 -y
 cd /etc/wireguard
 git clone https://github.com/jafnhaar/wg-gen-python
 cd wg-gen-python
-python3 wg-gen.py
+chmod +x wg-gen.py
+./wg-gen.py
 ```
 
 First run of this commands will generate basic configuration. After that if wg-gen.json exists it will create additional config files for you
@@ -29,7 +30,7 @@ qrencode -t ansiutf8 < wgclient_2.conf
 ## Easy identification
 You can easily identify for whom you generated current config by adding client name to script while running it. Client name will appear in comment section before peer in wghub.conf and in client configuration file. In example:
 ```bash
-python3 wg-gen.py my-laptop
+./wg-gen.py my-laptop
 ```
 
 
