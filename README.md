@@ -8,10 +8,11 @@ Script automatically sets masquerade wg interface for you (with iptables) and do
 curl
 python3
 wireguard-tools
+qrencode
 ```
 ### Basic usage: 
 ```Bash
-apt install python3 -y
+apt install python3 curl wireguard-tools qrencode -y
 cd /etc/wireguard
 git clone https://github.com/jafnhaar/wg-gen-python
 cd wg-gen-python
@@ -24,8 +25,7 @@ First run of this commands will generate basic configuration. After that if wg-g
 This script will automatically generate qrcode for your configuration if qrencode installed.
 If you want to generate qrcode out of your configuration file use this command:
 
-```bash
-apt install qrencode -y
+```Bash
 qrencode -t ansiutf8 < wgclient_2.conf
 ```
 ## Easy identification
