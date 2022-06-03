@@ -34,15 +34,27 @@ You can easily identify for whom you generated current config by adding client n
 ./wg-gen.py my-laptop
 ```
 
-
-
-# Running Wireguard
+# Starting Wireguard interface
 ```Bash
 ln -s $PWD/wghub.conf /etc/wireguard/wg0.conf
 wg-quick up wg0
 ```
 
-### Currently tested on:
+# Reloading Wireguard
+```Bash
+wg-quick down wg0 && wg-quick up wg0
+```
+
+# Troubleshooting
+
+Most common problem is correctly determining your main interface name. By default script masquerades eth0. If you have different interface name change it to whatever you like (i.e. ens18).
+
+You can find your default interface by running next command:  
+```
+ip addr 
+```
+
+# Currently tested on:
  - Alpine Linux 3.15 (LXC)
  - Arch Linux
  - Debian 11
