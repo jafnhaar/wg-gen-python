@@ -21,6 +21,9 @@ class Basic:
         """Returns current time w/o milliseconds"""
         return datetime.now().isoformat(' ', 'seconds')
 
+    def get_default_interface_name(self): 
+        return subprocess.check_output("ip route show 0.0.0.0/0 | awk '{print $5}' | head -n 1", shell=True).decode('UTF-8').strip()
+
     def read_json(self) -> json:
         """Reads json from a file"""
         with open('data.json', 'r') as file:
@@ -87,10 +90,10 @@ class Wireguard(Basic):
                 f'ListenPort = {data["port"]}\n'
                 f'PrivateKey = {data["hub_private_key"]}\n'
                 f'SaveConfig = False\n'
-                f'PostUp = iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE\n'
+                f'PostUp = iptables -t nat -A POSTROUTING -o {data["oiface"]} -j MASQUERADE\n'
                 f'PostUp = iptables -A FORWARD -i %i -j ACCEPT\n'
                 f'PostDown = iptables -D FORWARD -i %i -j ACCEPT\n'
-                f'PostDown = iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE\n'
+                f'PostDown = iptables -t nat -D POSTROUTING -o {data["oiface"]} -j MASQUERADE\n'
                 f'PostUp = sysctl -q -w net.ipv4.ip_forward=1\n'
                 f'PostDown = sysctl -q -w net.ipv4.ip_forward=0\n'
             )
@@ -122,7 +125,8 @@ def main():
             'seqno': '2',
             'port': str(random.randrange(10000, 60000)),
             'cidr': '/24',
-            'DNS': '1.1.1.1'
+            'DNS': '1.1.1.1',
+            'oiface': wireguard.get_default_interface_name()
         }
         wireguard.generate_hub(wireguard_data)
 
