@@ -51,7 +51,7 @@ class Wireguard(Basic):
         peer_keys = self.generate_wg_keys()
         preshared_key = self.generate_preshared_key()
         if int(data['seqno']) > 254:
-            return print("Maximum amount of IPs in /24 subnet exceeded")
+            return print("Maximum amount of IPs in /24 subnet exceeded.")
         else:
             with open('wghub.conf', 'a') as file:
                 file.write(
@@ -73,9 +73,9 @@ class Wireguard(Basic):
                     f'[Peer]\n'
                     f'PublicKey = {data["hub_public_key"]}\n'
                     f'PresharedKey = {preshared_key}\n'
-                    f'AllowedIPs = 0.0.0.0/0\n'
+                    f'AllowedIPs = {data["client_allowed_ips"]}\n'
                     f'Endpoint = {data["public_ip"]}:{data["port"]}\n'
-                    f'PersistentKeepalive = 25'
+                    f'PersistentKeepalive = 25\n'
                 )
             data['seqno'] = str(int(data['seqno']) + 1)
             return data
@@ -126,7 +126,8 @@ def main():
             'port': str(random.randrange(10000, 60000)),
             'cidr': '/24',
             'DNS': '1.1.1.1',
-            'oiface': wireguard.get_default_interface_name()
+            'oiface': wireguard.get_default_interface_name(),
+            'client_allowed_ips': '0.0.0.0/0'
         }
         wireguard.generate_hub(wireguard_data)
 
@@ -138,6 +139,7 @@ def main():
 
         wireguard.gen_qr_code(wireguard_data)
         wireguard.save_json(wireguard_data)
+
 
 if __name__ == '__main__':
     main()
