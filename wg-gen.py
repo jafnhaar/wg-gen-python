@@ -55,10 +55,10 @@ class Wireguard(Basic):
         peer_keys = self.generate_wg_keys()
         preshared_key = self.generate_preshared_key()
         gw_address = ipaddress.IPv4Interface(f'{data["private_ip"]}/{data["private_ip_netmask"]}')
-        client_private_ip = list(gw_address.network.hosts())[int(data["seqno"])]
-        client_private_interface = ipaddress.IPv4Interface(f'{client_private_ip}/{data["private_ip_netmask"]}')
+        client_ip = list(gw_address.network.hosts())[int(data["seqno"])]
+        client_interface = ipaddress.IPv4Interface(f'{client_ip}/{data["private_ip_netmask"]}')
 
-        if gw_address == client_private_ip:
+        if gw_address == client_interface:
             raise Exception('You reached last IP address in your wireguard network. No more clients can be generated.')
 
         with open('wghub.conf', 'a') as file:
@@ -75,7 +75,7 @@ class Wireguard(Basic):
                 f'#{data["seqno"]} generated at {self.get_current_time()} for {name}\n'
                 f'[Interface]\n'
                 f'PrivateKey = {peer_keys[0]}\n'
-                f'Address = {client_private_interface.with_prefixlen}\n'
+                f'Address = {client_interface.with_prefixlen}\n'
                 f'MTU = 1280\n'
                 f'DNS = {data["DNS"]}\n\n'
                 f'[Peer]\n'
