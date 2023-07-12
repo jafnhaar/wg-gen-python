@@ -70,7 +70,7 @@ class Wireguard(Basic):
                 f'PresharedKey = {preshared_key}\n'
                 f'AllowedIPs = {data["private_ip"]}{data["seqno"]}/32'
             )
-        with open('wgclient_' + data['seqno'] + '.conf', 'w') as file:
+        with open('wgclient_' + str(int(data['seqno']) + 1) + '.conf', 'w') as file:
             file.write(
                 f'#{data["seqno"]} generated at {self.get_current_time()} for {name}\n'
                 f'[Interface]\n'
@@ -112,7 +112,7 @@ class Wireguard(Basic):
 
     def gen_qr_code(self, data: dict) -> None:
         """Generates qr code from a configuration file"""
-        subprocess.run(f'qrencode -t ansiutf8 < wgclient_{int(data["seqno"])}.conf', shell=True)
+        subprocess.run(f'qrencode -t ansiutf8 < wgclient_{int(data["seqno"]) + 1}.conf', shell=True)
 
 
 def main():
@@ -135,7 +135,7 @@ def main():
             'public_ip': wireguard.get_public_ip(),
             'hub_private_key': hub_keys[0],
             'hub_public_key': hub_keys[1],
-            'seqno': '1',
+            'seqno': '0',
             'port': str(random.randrange(10000, 60000)),
             'DNS': '1.1.1.1',
             'oiface': wireguard.get_default_interface_name(),
